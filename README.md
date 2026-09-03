@@ -1,4 +1,4 @@
-# qiskit-quantum-loadbalancer
+# Qiskit Quantum Load Balancer
 
 Noise- and queue-aware backend selection and routing for IBM Quantum
 backends, built on `qiskit-ibm-runtime`.
