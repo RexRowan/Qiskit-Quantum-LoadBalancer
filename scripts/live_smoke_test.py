@@ -10,6 +10,15 @@ Exercises the paths the fake-backend test suite can't: auth, real
 submission, and what `submit_fn` actually gets back from the Runtime
 Sampler (to confirm `BackendRouter.submit`'s return type assumption
 holds against a real `RuntimeJob`, not just a stub).
+
+First real run of this script (2026-09-03) caught a genuine bug: the
+router was handing `submit_fn` the raw, untranspiled circuit, and IBM
+Runtime rejects non-ISA circuits (gates outside the target backend's
+basis) since March 2024. `ibm_fez` rejected `h` outright. Fixed in
+`router.py` -- `submit()` now transpiles to each candidate's ISA
+immediately before calling `submit_fn`. This is exactly the kind of
+failure the fake-backend pytest suite couldn't catch, since it never
+exercised real target-conformance validation.
 """
 
 from qiskit import QuantumCircuit

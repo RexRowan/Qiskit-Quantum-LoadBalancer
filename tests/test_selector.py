@@ -86,3 +86,41 @@ def test_router_raises_when_all_attempts_fail():
 
     with pytest.raises(RoutingError):
         router.submit(bell_pair(), always_fails, backends=[FakeManilaV2(), FakeSherbrooke()])
+
+
+def test_router_transpiles_to_isa_before_submit():
+    # Regression test: submit_fn must receive an ISA-conformant circuit for
+    # the *chosen* backend, not the raw circuit. Bell pair uses 'h', which
+    # isn't in FakeManilaV2's/FakeSherbrooke's basis gates -- if router.submit
+    # stops transpiling, this catches it the same way ibm_fez did in
+    # production (IBMInputValueError on submission).
+    selector = BackendSelector(strategy=QueueOnlyScoring())
+    router = BackendRouter(selector)
+    received = {}
+
+    def submit_fn(backend, circuit):
+        received["backend"] = backend
+        received["circuit"] = circuit
+        return "ok"
+
+    router.submit(bell_pair(), submit_fn, backends=[FakeManilaV2(), FakeSherbrooke()])
+
+    backend = received["backend"]
+    circuit = received["circuit"]
+    allowed = set(backend.target.operation_names)
+    used = {instruction.operation.name for instruction in circuit.data}
+    assert used <= allowed, f"circuit used {used - allowed}, not in {backend.name}'s ISA"
+
+
+def test_router_skips_transpile_when_disabled():
+    selector = BackendSelector(strategy=QueueOnlyScoring())
+    router = BackendRouter(selector, transpile_before_submit=False)
+    circuit = bell_pair()
+    received = {}
+
+    def submit_fn(backend, circ):
+        received["circuit"] = circ
+        return "ok"
+
+    router.submit(circuit, submit_fn, backends=[FakeManilaV2()])
+    assert received["circuit"] is circuit

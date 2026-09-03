@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import List, Optional, Sequence
 
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, transpile
 
 from .selector import BackendSelector
 
@@ -28,11 +28,27 @@ class BackendRouter:
     caller wants back (e.g. a `RuntimeJob`, or the result of `sampler.run`).
     Keeping submission itself pluggable avoids hard-coding a specific
     Runtime primitive (Sampler vs Estimator) into the router.
+
+    IBM Runtime primitives require ISA circuits -- the exact basis gates and
+    coupling map of the target backend -- since March 2024. Which backend
+    ends up being tried isn't known until rank time, so `submit()` transpiles
+    the circuit to each candidate's ISA immediately before calling
+    `submit_fn`, rather than leaving that to the caller (who can't know the
+    target ahead of time either). Set `transpile_before_submit=False` if you
+    already have per-backend ISA circuits and want to hand them off yourself.
     """
 
-    def __init__(self, selector: BackendSelector, max_attempts: int = 3):
+    def __init__(
+        self,
+        selector: BackendSelector,
+        max_attempts: int = 3,
+        transpile_before_submit: bool = True,
+        optimization_level: int = 1,
+    ):
         self.selector = selector
         self.max_attempts = max_attempts
+        self.transpile_before_submit = transpile_before_submit
+        self.optimization_level = optimization_level
 
     def submit(
         self,
@@ -49,7 +65,15 @@ class BackendRouter:
         for candidate in ranked[: self.max_attempts]:
             attempts.append(candidate.backend_name)
             try:
-                return submit_fn(candidate.backend, circuit)
+                if self.transpile_before_submit:
+                    isa_circuit = transpile(
+                        circuit,
+                        backend=candidate.backend,
+                        optimization_level=self.optimization_level,
+                    )
+                else:
+                    isa_circuit = circuit
+                return submit_fn(candidate.backend, isa_circuit)
             except Exception as exc:  # noqa: BLE001 - deliberately broad, we retry
                 last_error = exc
                 continue

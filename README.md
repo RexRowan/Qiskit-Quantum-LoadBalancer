@@ -87,9 +87,9 @@ manually with your own IBM Quantum credentials configured:
 python scripts/live_smoke_test.py
 ```
 
-This has **not yet been run against a live service** as part of building
-this package — it's provided but unverified. Run it before relying on
-this in front of real hardware.
+This has been **run once against a live service (2026-09-03)** and caught
+a real bug on first try — see below. Re-run after any change to
+`router.py` or `scoring.py`.
 
 ## Fidelity estimate: validation status
 
@@ -140,12 +140,14 @@ actual hardware run.
 - **Hybrid weights are defaults, not tuned.** The 0.4/0.6 split in
   `HybridScoring` is a reasonable starting point, not the result of
   empirical calibration against real turnaround-time or fidelity data.
-- **No live-service integration tests.** The pytest suite runs entirely
-  against `qiskit_ibm_runtime.fake_provider` backends (no network calls).
-  `scripts/live_smoke_test.py` exists for manual real-service checks but
-  has not itself been run yet — `BackendRouter`'s failover path is
-  verified only against an injected `submit_fn`, not real Runtime API
-  error modes (auth failures, rate limits, mid-job backend retirement).
+- **No live-service integration tests in CI.** `scripts/live_smoke_test.py`
+  has now caught one real bug on its first live run (non-ISA circuit
+  submission, fixed — see above), but it isn't run automatically; nothing
+  currently prevents a future regression from reaching a release without
+  someone running it manually. `BackendRouter`'s failover path itself is
+  still verified only against injected `submit_fn`s in pytest, not real
+  Runtime error modes like auth failures, rate limits, or mid-job backend
+  retirement.
 - **Static circuit assumption.** Scoring assumes a fixed circuit width
   known ahead of time. Dynamic circuits with mid-circuit measurement and
   classical feedforward are transpiled and scored the same way, but the
