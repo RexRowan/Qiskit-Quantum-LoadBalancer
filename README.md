@@ -1,4 +1,4 @@
-# Qiskit Quantum Load Balancer
+# qiskit-quantum-loadbalancer
 
 Noise- and queue-aware backend selection and routing for IBM Quantum
 backends, built on `qiskit-ibm-runtime`.
@@ -91,13 +91,44 @@ This has **not yet been run against a live service** as part of building
 this package — it's provided but unverified. Run it before relying on
 this in front of real hardware.
 
+## Fidelity estimate: validation status
+
+`scripts/validate_fidelity_estimate.py` checks `NoiseAwareScoring`'s
+analytic prediction against a Qiskit Aer noise-model simulation built from
+the same calibration data (`AerSimulator.from_backend`). Sample results:
+
+| Circuit / backend       | Predicted | Simulated | Diff    |
+|--------------------------|-----------|-----------|---------|
+| bell_pair / Manila        | 0.9351    | 0.9395    | -0.0044 |
+| bell_pair / Sherbrooke     | 0.9565    | 0.9602    | -0.0037 |
+| ghz3 / Manila             | 0.8332    | 0.8397    | -0.0066 |
+| ghz5 / Sherbrooke          | 0.8805    | 0.8869    | -0.0064 |
+| ghz4 / Manila             | 0.8119    | 0.8292    | -0.0174 |
+
+Agreement is within ~0.02 across these cases, and `tests/test_fidelity_validation.py`
+regression-tests this stays under a 0.05 tolerance (skipped automatically
+if the optional `qiskit-aer` extra isn't installed: `pip install -e ".[validate]"`).
+
+**Read this narrowly.** Aer's noise model is built from the *same*
+calibration numbers `NoiseAwareScoring` reads, using thermal-relaxation and
+depolarizing channels per gate — which are themselves built from
+independence assumptions similar to the analytic estimate's. Close
+agreement here shows the analytic math is a reasonable approximation *of
+that noise model*, not that the noise model matches a real device on any
+given day. It does not touch crosstalk, calibration drift, or correlated
+errors — the gap flagged below still stands until validated against an
+actual hardware run.
+
 ## Known limitations
 
 - **Independent-error assumption.** `NoiseAwareScoring` multiplies gate
-  and readout error rates as if they were independent. Real device noise
-  is correlated (crosstalk, drift, spatially correlated errors), so this
-  systematically overstates fidelity, especially on wider circuits. It's
-  a useful *relative* ranking signal, not an absolute fidelity prediction.
+  and readout error rates as if they were independent. Checked against
+  Aer noise-model simulation (see above) it tracks within ~0.02 — but
+  that simulation shares the same independence assumptions, so this
+  doesn't rule out systematic overstatement on real hardware, where
+  crosstalk, drift, and spatially correlated errors aren't Markovian
+  per-gate channels. Treat it as a *relative* ranking signal until
+  checked against real device results.
 - **Transpile cost.** Noise-aware scoring transpiles the circuit against
   every candidate backend on every call. `CalibrationCache` (now wired in)
   avoids refetching `status()`/`properties()`, but transpilation itself

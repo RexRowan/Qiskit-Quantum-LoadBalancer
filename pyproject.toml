@@ -21,6 +21,9 @@ dependencies = [
 test = [
     "pytest>=7.0",
 ]
+validate = [
+    "qiskit-aer>=0.13",
+]
 
 [project.urls]
 Homepage = "https://github.com/RexRowan/Qiskit-Quantum-Loadbalancer"
