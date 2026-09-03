@@ -1,5 +1,7 @@
 # qiskit-quantum-loadbalancer
 
+[![Tests](https://github.com/RexRowan/Qiskit-Quantum-Loadbalancer/actions/workflows/tests.yml/badge.svg)](https://github.com/RexRowan/Qiskit-Quantum-Loadbalancer/actions/workflows/tests.yml)
+
 Noise- and queue-aware backend selection and routing for IBM Quantum
 backends, built on `qiskit-ibm-runtime`.
 
@@ -10,6 +12,12 @@ after transpilation — then can route job submission with automatic
 failover if a backend errors out.
 
 ## Install
+
+```bash
+pip install qiskit-quantum-loadbalancer
+```
+
+Or from source:
 
 ```bash
 pip install -e .
@@ -156,6 +164,25 @@ actual hardware run.
   classical feedforward are transpiled and scored the same way, but the
   fidelity estimate doesn't account for any additional overhead specific
   to dynamic execution.
+
+## Releasing
+
+CI (`.github/workflows/tests.yml`) runs the pytest suite on every push and
+PR against Python 3.9–3.12. Publishing to PyPI (`.github/workflows/publish.yml`)
+triggers on a GitHub Release and uses [PyPI Trusted Publishing](https://docs.pypi.org/trusted-publishers/) —
+no API token stored as a secret. One-time setup required on the PyPI side
+before the first release:
+
+1. Create the `qiskit-quantum-loadbalancer` project on PyPI (or use the
+   "pending publisher" flow if it doesn't exist yet — PyPI lets you
+   register a trusted publisher before the first release).
+2. Under the project's "Publishing" settings, add a trusted publisher:
+   - Owner: `RexRowan`
+   - Repository: `Qiskit-Quantum-Loadbalancer`
+   - Workflow: `publish.yml`
+   - Environment: `pypi`
+3. Bump the version in `pyproject.toml`, update `CHANGELOG.md`, tag and
+   publish a GitHub Release — the workflow handles the rest.
 
 ## License
 

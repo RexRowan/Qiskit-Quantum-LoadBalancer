@@ -1,0 +1,8 @@
+qiskit<3,>=2.0
+qiskit-ibm-runtime<1,>=0.30
+
+[test]
+pytest>=7.0
+
+[validate]
+qiskit-aer>=0.13
