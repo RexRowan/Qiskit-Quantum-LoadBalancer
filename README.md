@@ -87,8 +87,10 @@ manually with your own IBM Quantum credentials configured:
 python scripts/live_smoke_test.py
 ```
 
-This has been **run once against a live service (2026-09-03)** and caught
-a real bug on first try — see below. Re-run after any change to
+This has been **run twice against a live service (2026-09-03)**. First
+run caught a real bug (non-ISA circuit submission — see below, fixed in
+`router.py`); second run, after the fix, submitted cleanly to `ibm_fez`
+and returned a real `RuntimeJobV2`. Re-run after any further change to
 `router.py` or `scoring.py`.
 
 ## Fidelity estimate: validation status
@@ -141,13 +143,14 @@ actual hardware run.
   `HybridScoring` is a reasonable starting point, not the result of
   empirical calibration against real turnaround-time or fidelity data.
 - **No live-service integration tests in CI.** `scripts/live_smoke_test.py`
-  has now caught one real bug on its first live run (non-ISA circuit
-  submission, fixed — see above), but it isn't run automatically; nothing
-  currently prevents a future regression from reaching a release without
-  someone running it manually. `BackendRouter`'s failover path itself is
-  still verified only against injected `submit_fn`s in pytest, not real
-  Runtime error modes like auth failures, rate limits, or mid-job backend
-  retirement.
+  has been run manually twice: once caught a real bug (non-ISA circuit
+  submission, fixed — see above), once confirmed the fix works end-to-end
+  against real hardware (`ibm_fez`, job `daciemu42tqs73as7h10`). It still
+  isn't run automatically, so nothing currently prevents a future
+  regression from reaching a release without someone running it manually.
+  `BackendRouter`'s failover path itself is still verified only against
+  injected `submit_fn`s in pytest, not real Runtime error modes like auth
+  failures, rate limits, or mid-job backend retirement.
 - **Static circuit assumption.** Scoring assumes a fixed circuit width
   known ahead of time. Dynamic circuits with mid-circuit measurement and
   classical feedforward are transpiled and scored the same way, but the
