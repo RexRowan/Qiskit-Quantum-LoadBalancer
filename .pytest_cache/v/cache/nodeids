@@ -1,0 +1,22 @@
+[
+  "tests/test_fidelity_validation.py::test_analytic_estimate_tracks_noise_model_simulation",
+  "tests/test_monitor.py::test_cache_invalidate_forces_refetch",
+  "tests/test_monitor.py::test_noise_scoring_uses_cache_and_avoids_refetch",
+  "tests/test_monitor.py::test_queue_scoring_uses_cache_and_avoids_refetch",
+  "tests/test_scoring.py::test_hybrid_combines_both_signals",
+  "tests/test_scoring.py::test_hybrid_rejects_zero_weights",
+  "tests/test_scoring.py::test_noise_aware_prefers_lower_error_backend_for_same_circuit",
+  "tests/test_scoring.py::test_noise_aware_returns_probability_like_score",
+  "tests/test_scoring.py::test_queue_only_excludes_undersized_backend",
+  "tests/test_scoring.py::test_queue_only_scores_fitting_backend",
+  "tests/test_selector.py::test_rank_excludes_undersized_backends",
+  "tests/test_selector.py::test_rank_orders_by_score_descending",
+  "tests/test_selector.py::test_router_fails_over_on_error",
+  "tests/test_selector.py::test_router_raises_when_all_attempts_fail",
+  "tests/test_selector.py::test_router_skips_transpile_when_disabled",
+  "tests/test_selector.py::test_router_submits_to_top_ranked_backend",
+  "tests/test_selector.py::test_router_transpiles_to_isa_before_submit",
+  "tests/test_selector.py::test_select_returns_best_backend",
+  "tests/test_selector.py::test_select_returns_none_when_no_backend_fits",
+  "tests/test_selector.py::test_selector_requires_backends_or_service"
+]
